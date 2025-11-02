@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boy Walking Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .game-container {
+            width: 800px;
+            max-width: 95%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            background: #111;
+            width: 100%;
+        }
+
+        .ui {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #444;
+        }
+
+        .ui-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ui-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .ui-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        #time {
+            color: #4CAF50;
+        }
+
+        #time.warning {
+            color: #ff9800;
+            animation: pulse 1s infinite;
+        }
+
+        #time.danger {
+            color: #f44336;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid #444;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 #388E3C;
+        }
+
+        button:hover {
+            background: #45a049;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #388E3C;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        #restart {
+            background: #f44336;
+            box-shadow: 0 4px 0 #d32f2f;
+        }
+
+        #restart:hover {
+            background: #e53935;
+            box-shadow: 0 2px 0 #d32f2f;
+        }
+
+        #pause {
+            background: #ff9800;
+            box-shadow: 0 4px 0 #e68900;
+        }
+
+        #pause:hover {
+            background: #e68900;
+            box-shadow: 0 2px 0 #e68900;
+        }
+
+        #home {
+            background: #2196F3;
+            box-shadow: 0 4px 0 #0b7dda;
+        }
+
+        #home:hover {
+            background: #0b7dda;
+            box-shadow: 0 2px 0 #0b7dda;
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-title {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+        }
+
+        .instructions {
+            max-width: 600px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 18px;
+        }
+
+        .instructions p {
+            margin: 10px 0;
+        }
+
+        .key {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #333;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 0 5px;
+            border: 1px solid #555;
+        }
+
+        #startButton {
+            padding: 15px 50px;
+            font-size: 22px;
+            background: linear-gradient(to right, #4CAF50, #45a049);
+            margin-top: 20px;
+            box-shadow: 0 6px 0 #388E3C;
+        }
+
+        #startButton:hover {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #388E3C;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .game-over h2 {
+            font-size: 48px;
+            color: #f44336;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(244, 67, 54, 0.7);
+        }
+
+        .final-stats {
+            font-size: 24px;
+            margin: 15px 0;
+        }
+
+        .final-score {
+            color: gold;
+            font-size: 36px;
+            margin: 10px 0;
+        }
+
+        .floating-text {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            pointer-events: none;
+            z-index: 5;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+        }
+
+        .pause-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .pause-screen h2 {
+            font-size: 48px;
+            color: #ff9800;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 152, 0, 0.7);
+        }
+
+        @media (max-width: 600px) {
+            .ui {
+                flex-wrap: wrap;
+            }
+
+            .ui-item {
+                width: 50%;
+                margin-bottom: 10px;
+            }
+
+            .game-title {
+                font-size: 36px;
+            }
+
+            .instructions {
+                font-size: 16px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 80%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="ui">
+            <div class="ui-item">
+                <div class="ui-label">SCORE</div>
+                <div id="score" class="ui-value">0</div>
+            </div>
+            <div class="ui-item">
+                <div class="ui-label">COINS</div>
+                <div id="coins" class="ui-value">0</div>
+            </div>
+            <div class="ui-item">
+                <div class="ui-label">TIME</div>
+                <div id="time" class="ui-value">30</div>
+            </div>
+            <div class="ui-item">
+                <div class="ui-label">LEVEL</div>
+                <div id="level" class="ui-value">1</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+        <div class="controls">
+            <button id="pause">PAUSE</button>
+            <button id="restart">RESTART</button>
+            <button id="home">HOME</button>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+            <h1 class="game-title">BOY WALKING GAME</h1>
+            <div class="instructions">
+                <p>Collect as many coins as you can in 30 seconds!</p>
+                <p>Avoid the red obstacles or you'll lose points.</p>
+                <p>Use the <span class="key">↑</span> <span class="key">↓</span> <span class="key">←</span> <span
+                        class="key">→</span> arrow keys to move the boy.</p>
+                <p>Press <span class="key">P</span> or click the PAUSE button to pause the game.</p>
+                <p>Click HOME to return to this screen anytime.</p>
+                <p>Background music will start when you click START GAME.</p>
+            </div>
+            <button id="startButton">START GAME</button>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>TIME'S UP!</h2>
+            <div class="final-stats">Final Score</div>
+            <div id="finalScore" class="final-score">0</div>
+            <div class="final-stats">Coins Collected: <span id="finalCoins">0</span></div>
+            <div class="controls">
+                <button id="playAgain">PLAY AGAIN</button>
+                <button id="homeFromGameOver">HOME</button>
+            </div>
+        </div>
+
+        <div class="pause-screen" id="pauseScreen">
+            <h2>GAME PAUSED</h2>
+            <p>Click the RESUME button or press P to continue</p>
+            <div class="controls">
+                <button id="resume">RESUME</button>
+                <button id="homeFromPause">HOME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound effects -->
+    <audio id="coinSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-coin-win-notification-1992.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="crashSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-cartoon-falling-whistle.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="backgroundMusic" preload="auto" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-667.mp3"
+            type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Game elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOver');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restart');
+        const pauseButton = document.getElementById('pause');
+        const homeButton = document.getElementById('home');
+        const resumeButton = document.getElementById('resume');
+        const homeFromPauseButton = document.getElementById('homeFromPause');
+        const playAgainButton = document.getElementById('playAgain');
+        const homeFromGameOverButton = document.getElementById('homeFromGameOver');
+        const scoreElement = document.getElementById('score');
+        const coinsElement = document.getElementById('coins');
+        const timeElement = document.getElementById('time');
+        const levelElement = document.getElementById('level');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalCoinsElement = document.getElementById('finalCoins');
+
+        // Sound elements
+        const coinSound = document.getElementById('coinSound');
+        const crashSound = document.getElementById('crashSound');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+
+        // Game variables
+        let gameStarted = false;
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let coins = 0;
+        let timeLeft = 30;
+        let level = 1;
+        let boy;
+        let pickups = [];
+        let obstacles = [];
+        let floatingTexts = [];
+        let keys = {};
+        let roadOffset = 0;
+        let lastTime = 0;
+
+        // Play background music
+        function playMusic() {
+            backgroundMusic.volume = 0.3;
+            backgroundMusic.play().catch(e => console.log("Audio play failed:", e));
+        }
+
+        // Initialize game objects
+        function initGame() {
+            // Create the boy character
+            boy = {
+                x: canvas.width / 2,
+                y: canvas.height - 100,
+                width: 20,
+                height: 40,
+                color: '#ffdbac',
+                speed: 0,
+                moveX: 0,
+                moveY: 0
+            };
+
+            // Create coins
+            pickups = [];
+            for (let i = 0; i < 15; i++) {
+                pickups.push({
+                    x: Math.random() * (canvas.width - 200) + 100,
+                    y: Math.random() * canvas.height,
+                    radius: 10,
+                    color: '#ffd700',
+                    collected: false
+                });
+            }
+
+            // Create obstacles
+            obstacles = [];
+            for (let i = 0; i < 10; i++) {
+                obstacles.push({
+                    x: Math.random() * (canvas.width - 200) + 100,
+                    y: Math.random() * canvas.height,
+                    width: 25,
+                    height: 25,
+                    color: '#ff4444'
+                });
+            }
+
+            // Reset game state
+            score = 0;
+            coins = 0;
+            timeLeft = 30;
+            level = 1;
+            floatingTexts = [];
+            roadOffset = 0;
+
+            // Update UI
+            updateUI();
+        }
+
+        // Start the game
+        function startGame() {
+            gameStarted = true;
+            gameRunning = true;
+            startScreen.style.display = 'none';
+            initGame();
+
+            // Start the game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Reset the game
+        function resetGame() {
+            gameRunning = false;
+            gameOverScreen.style.display = 'none';
+            pauseScreen.style.display = 'none';
+            startGame();
+        }
+
+        // Return to home screen
+        function goHome() {
+            gameStarted = false;
+            gameRunning = false;
+            gamePaused = false;
+            gameOverScreen.style.display = 'none';
+            pauseScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+
+            // Stop background music
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0;
+
+            // Reset game state
+            initGame();
+            draw();
+        }
+
+        // Pause the game
+        function pauseGame() {
+            gamePaused = true;
+            gameRunning = false;
+            pauseScreen.style.display = 'flex';
+            backgroundMusic.pause();
+        }
+
+        // Resume the game
+        function resumeGame() {
+            gamePaused = false;
+            gameRunning = true;
+            pauseScreen.style.display = 'none';
+            backgroundMusic.play().catch(e => console.log("Audio play failed:", e));
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Update UI elements
+        function updateUI() {
+            scoreElement.textContent = score;
+            coinsElement.textContent = coins;
+            timeElement.textContent = timeLeft;
+            levelElement.textContent = level;
+
+            // Update time color based on remaining time
+            timeElement.classList.remove('warning', 'danger');
+            if (timeLeft <= 10) {
+                timeElement.classList.add('danger');
+            } else if (timeLeft <= 15) {
+                timeElement.classList.add('warning');
+            }
+        }
+
+        // Show game over screen
+        function showGameOver() {
+            gameRunning = false;
+            gameOverScreen.style.display = 'flex';
+            finalScoreElement.textContent = score;
+            finalCoinsElement.textContent = coins;
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0;
+        }
+
+        // Create floating text
+        function createFloatingText(text, x, y, color = 'white') {
+            floatingTexts.push({
+                text: text,
+                x: x,
+                y: y,
+                color: color,
+                alpha: 1,
+                life: 1.5
+            });
+        }
+
+        // Update game state
+        function update(deltaTime) {
+            if (!gameRunning) return;
+
+            // Update time
+            timeLeft -= deltaTime;
+            if (timeLeft <= 0) {
+                timeLeft = 0;
+                showGameOver();
+            }
+
+            // Move the boy
+            boy.moveX = 0;
+            boy.moveY = 0;
+
+            if (keys['ArrowUp']) boy.moveY = -1;
+            if (keys['ArrowDown']) boy.moveY = 1;
+            if (keys['ArrowLeft']) boy.moveX = -1;
+            if (keys['ArrowRight']) boy.moveX = 1;
+
+            // Normalize diagonal movement
+            if (boy.moveX !== 0 && boy.moveY !== 0) {
+                boy.moveX *= 0.707;
+                boy.moveY *= 0.707;
+            }
+
+            // Update position
+            boy.speed = 150;
+            boy.x += boy.moveX * boy.speed * deltaTime;
+            boy.y += boy.moveY * boy.speed * deltaTime;
+
+            // Keep boy on screen
+            boy.x = Math.max(100 + boy.width / 2, Math.min(canvas.width - 100 - boy.width / 2, boy.x));
+            boy.y = Math.max(boy.height / 2, Math.min(canvas.height - boy.height / 2, boy.y));
+
+            // Update road scroll
+            roadOffset += boy.moveY * boy.speed * deltaTime;
+
+            // Check coin collisions
+            for (let i = 0; i < pickups.length; i++) {
+                const coin = pickups[i];
+                if (!coin.collected) {
+                    const dx = boy.x - coin.x;
+                    const dy = boy.y - coin.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < boy.width / 2 + coin.radius) {
+                        coin.collected = true;
+                        coins++;
+                        score += 10;
+                        createFloatingText('+10', coin.x, coin.y, '#ffd700');
+
+                        // Play coin sound
+                        coinSound.currentTime = 0;
+                        coinSound.play().catch(e => console.log("Coin sound play failed:", e));
+
+                        // Check if all coins are collected
+                        const allCollected = pickups.every(p => p.collected);
+                        if (allCollected) {
+                            level++;
+                            createFloatingText('Level Up!', canvas.width / 2, canvas.height / 2, '#4CAF50');
+
+                            // Add more coins for the next level
+                            for (let j = 0; j < 5; j++) {
+                                pickups.push({
+                                    x: Math.random() * (canvas.width - 200) + 100,
+                                    y: Math.random() * canvas.height,
+                                    radius: 10,
+                                    color: '#ffd700',
+                                    collected: false
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check obstacle collisions
+            for (let i = 0; i < obstacles.length; i++) {
+                const obstacle = obstacles[i];
+                const dx = Math.abs(boy.x - obstacle.x);
+                const dy = Math.abs(boy.y - obstacle.y);
+
+                if (dx < (boy.width + obstacle.width) / 2 && dy < (boy.height + obstacle.height) / 2) {
+                    score = Math.max(0, score - 5);
+                    createFloatingText('-5', boy.x, boy.y, '#ff4444');
+
+                    // Play crash sound
+                    crashSound.currentTime = 0;
+                    crashSound.play().catch(e => console.log("Crash sound play failed:", e));
+
+                    // Move boy away from obstacle
+                    boy.x += (boy.x > obstacle.x ? 1 : -1) * 20;
+                    boy.y += (boy.y > obstacle.y ? 1 : -1) * 20;
+                }
+            }
+
+            // Update floating texts
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const text = floatingTexts[i];
+                text.y -= 50 * deltaTime;
+                text.life -= deltaTime;
+                text.alpha = text.life / 1.5;
+
+                if (text.life <= 0) {
+                    floatingTexts.splice(i, 1);
+                }
+            }
+
+            // Update UI
+            updateUI();
+        }
+
+        // Draw the game
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw road
+            drawRoad();
+
+            // Draw coins
+            for (const coin of pickups) {
+                if (!coin.collected) {
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = coin.color;
+                    ctx.fill();
+
+                    // Draw coin detail
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.radius - 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffed4e';
+                    ctx.fill();
+
+                    ctx.fillStyle = '#b8860b';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('¢', coin.x, coin.y);
+                }
+            }
+
+            // Draw obstacles
+            for (const obstacle of obstacles) {
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x - obstacle.width / 2, obstacle.y - obstacle.height / 2, obstacle.width, obstacle.height);
+
+                // Draw obstacle detail
+                ctx.fillStyle = '#cc0000';
+                ctx.fillRect(obstacle.x - obstacle.width / 2 + 3, obstacle.y - obstacle.height / 2 + 3, obstacle.width - 6, obstacle.height - 6);
+            }
+
+            // Draw boy
+            drawBoy();
+
+            // Draw floating texts
+            for (const text of floatingTexts) {
+                ctx.save();
+                ctx.globalAlpha = text.alpha;
+                ctx.fillStyle = text.color;
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text.text, text.x, text.y);
+                ctx.restore();
+            }
+        }
+
+        // Draw the road
+        function drawRoad() {
+            // Road base
+            ctx.fillStyle = '#333';
+            ctx.fillRect(100, 0, canvas.width - 200, canvas.height);
+
+            // Road sides
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, 100, canvas.height);
+            ctx.fillRect(canvas.width - 100, 0, 100, canvas.height);
+
+            // Road markings
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([20, 20]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, -roadOffset % 40);
+            for (let y = -roadOffset % 40; y < canvas.height; y += 40) {
+                ctx.lineTo(canvas.width / 2, y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Side markings
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 15]);
+            ctx.beginPath();
+            ctx.moveTo(100, -roadOffset % 30);
+            for (let y = -roadOffset % 30; y < canvas.height; y += 30) {
+                ctx.lineTo(100, y);
+            }
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 100, -roadOffset % 30);
+            for (let y = -roadOffset % 30; y < canvas.height; y += 30) {
+                ctx.lineTo(canvas.width - 100, y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Draw the boy character
+        function drawBoy() {
+            ctx.save();
+            ctx.translate(boy.x, boy.y);
+
+            // Body
+            ctx.fillStyle = boy.color;
+            ctx.fillRect(-boy.width / 2, -boy.height / 2, boy.width, boy.height);
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(0, -boy.height / 2 - 8, 10, 0, Math.PI * 2);
+            ctx.fillStyle = boy.color;
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(-4, -boy.height / 2 - 10, 2, 0, Math.PI * 2);
+            ctx.arc(4, -boy.height / 2 - 10, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Arms
+            ctx.strokeStyle = boy.color;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-boy.width / 2, -boy.height / 2 + 10);
+            ctx.lineTo(-boy.width / 2 - 8, -boy.height / 2 + 5);
+            ctx.moveTo(boy.width / 2, -boy.height / 2 + 10);
+            ctx.lineTo(boy.width / 2 + 8, -boy.height / 2 + 5);
+            ctx.stroke();
+
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(-boy.width / 4, boy.height / 2);
+            ctx.lineTo(-boy.width / 4 - 5, boy.height / 2 + 12);
+            ctx.moveTo(boy.width / 4, boy.height / 2);
+            ctx.lineTo(boy.width / 4 + 5, boy.height / 2 + 12);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Game loop
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            if (gameRunning) {
+                update(deltaTime);
+                draw();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        startButton.addEventListener('click', function () {
+            startGame();
+            playMusic();
+        });
+        restartButton.addEventListener('click', resetGame);
+        pauseButton.addEventListener('click', pauseGame);
+        homeButton.addEventListener('click', goHome);
+        resumeButton.addEventListener('click', resumeGame);
+        homeFromPauseButton.addEventListener('click', goHome);
+        playAgainButton.addEventListener('click', resetGame);
+        homeFromGameOverButton.addEventListener('click', goHome);
+
+        window.addEventListener('keydown', (e) => {
+            if (!gameStarted) return;
+
+            keys[e.key] = true;
+
+            // Pause with P key
+            if (e.key === 'p' || e.key === 'P') {
+                if (gameRunning) {
+                    pauseGame();
+                } else if (gamePaused) {
+                    resumeGame();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Initialize the game (but don't start it yet)
+        initGame();
+        draw();
+    </script>
+</body>
+
+</html>
